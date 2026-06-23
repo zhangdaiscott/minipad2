@@ -18,7 +18,7 @@ type
       procedure ImportFiles (o_parent: TPageSuper);
       procedure ImportFolder (o_parent: TPageSuper);
       function f_SelectFolder (const s_deffolder: widestring = ''): widestring;
-		function ImportFrom (o_parent: TPageSuper; const s_pathfile: widestring; b_virtual: boolean; b_ignorenontxtfiles: boolean): boolean;  // °´ESCÖÕÖ¹
+		function ImportFrom (o_parent: TPageSuper; const s_pathfile: widestring; b_virtual: boolean; b_ignorenontxtfiles: boolean): boolean;  // ï¿½ï¿½ESCï¿½ï¿½Ö¹
       procedure ImportMepFile (o_parent: TPageSuper; const s_file: widestring);
       procedure ImportTextFile (o_parent: TPageSuper; const s_file: widestring; b_virtual: boolean);
 
@@ -60,7 +60,7 @@ type
       property GroupExport: boolean read FGroupExport write FGroupExport;
    end;
 
-// Óë UOpProgram ÖÐµÄ TOpImportExport ¹²Ïí´úÂë
+// ï¿½ï¿½ UOpProgram ï¿½Ðµï¿½ TOpImportExport ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 procedure f_SetEncode (cmb: TxlComboBox; enc: TEncode);
 function f_GetEncode (cmb: TxlComboBox): TEncode;
 
@@ -181,7 +181,7 @@ begin
    else
    	ImportFolder (o_parent);
 
-   // Èç¹ûµ¼Èë³É¹¦£¬ÔòÑ¡ÖÐ×îºóÒ»Ïîµ¼ÈëÏî
+   // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½îµ¼ï¿½ï¿½ï¿½ï¿½
    if o_parent.Childs.Count > n then
 		f_SelectLastChild (o_parent);
 end;
@@ -293,7 +293,7 @@ begin
          ImportTextFile (o_parent, s_pathfile, b_virtual);
       ProgTip.HideTip;
    end;
-   ProcessMessages;     // ±ØÐè£¡
+   ProcessMessages;     // ï¿½ï¿½ï¿½è£¡
    result := not KeyPressed (VK_ESCAPE);
    if not result then
       ProgTip.ShowTip (LangMan.GetItem(sr_userabortimport));
@@ -345,7 +345,7 @@ begin
       PageProperty.ExportFile := s_file;
       PageProperty.ExternalSave := b_virtual;
       o_parent.Childs.AddChild (id);
-      SaveMan.Save; // ·ÀÖ¹µ¼Èë´óÎÄ¼þÊ±·ÑÊ±Ì«³¤£¬ÓÃ»§ÖÕÖ¹³ÌÐò£¬³öÏÖÊý¾Ý¿âÌå»ýÅòÕÍ¶øÎÞÏàÓ¦½ÚµãµÄÎÊÌâ
+      SaveMan.Save; // ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Ê±ï¿½ï¿½Ê±Ì«ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ò£¬³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
       if not b_virtual then
       begin
          with TxlTextFile.create (s_file, fmRead, enUnknown) do
@@ -423,15 +423,15 @@ begin
       s := s_folder + FilterFileName(psub.Name, true);
       ProgTip.ShowTip (psub.Name, LangMan.GetItem(sr_exportingprompt), tiInfo);
 
-      if psub.CanAddChild (ptNote) then   // µ¼³öÎªÎÄ¼þ¼Ð
+      if psub.CanAddChild (ptNote) then   // ï¿½ï¿½ï¿½ï¿½Îªï¿½Ä¼ï¿½ï¿½ï¿½
          ExportGroupToFolder (psub, s + '\')
-      else if psub.IsChildItemContainer then   // ¶ÔÓÚÍ¨Ñ¶Â¼µÈÁÐ±íÒ³£¬µ¼³öÎª mep ÎÄ¼þ
+      else if psub.IsChildItemContainer then   // ï¿½ï¿½ï¿½ï¿½Í¨Ñ¶Â¼ï¿½ï¿½ï¿½Ð±ï¿½Ò³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª mep ï¿½Ä¼ï¿½
          ExportPageToFile (psub, s + '.mep')
       else
          ExportPageToFile (psub, s + '.txt');
 
       ProgTip.HideTip;
-      ProcessMessages;     // ±ØÐè£¡
+      ProcessMessages;     // ï¿½ï¿½ï¿½è£¡
       b_abort := KeyPressed (VK_ESCAPE);
       if b_abort then
       begin
@@ -475,23 +475,61 @@ end;
 
 procedure TIOHandler.ExportPageToFile (p: TPageSuper; const s_file: widestring);
 var o_file: TxlTextFile;
-	b_mep: boolean;
+   b_mep, b_md: boolean;
+   s_text, s_name, s_imgdir, s_src: widestring;
+   i_pos, i_end: cardinal;
 begin
    if s_file = '' then exit;
-   b_mep := IsSameStr(extractfileext(s_file), 'mep');
+   b_mep := IsSameStr(extractfileext(s_file), '.mep');
+   b_md  := IsSameStr(extractfileext(s_file), '.md');
 
-   o_file := TxlTextFile.create (s_file, fmWrite, OptionMan.Options.ExportEncode);
-   if b_mep then
-   	o_file.WriteLn (MepVersion);
-   o_file.WriteText (p.ExportText (b_mep));
-   o_file.Free;
+   if b_md then
+   begin
+      s_text   := p.ExportText(false);
+      s_imgdir := ExtractFilePath(s_file) + 'images\';
+
+      // Find each [image:name], copy file, replace marker with MD syntax
+      i_pos := FirstPos('[image:', s_text);
+      while i_pos > 0 do
+      begin
+         i_end := FirstPos(']', s_text, i_pos);
+         if i_end = 0 then break;
+         s_name := Copy(s_text, i_pos + 7, i_end - i_pos - 7);
+
+         s_src := DataDir + 'images\' + s_name;
+         if PathFileExists(PWideChar(s_src)) then
+         begin
+            if not PathFileExists(PWideChar(s_imgdir)) then
+               CreateDir(s_imgdir);
+            CopyFileW(PWideChar(s_src), PWideChar(s_imgdir + s_name), false);
+         end;
+
+         // Replace all occurrences of this marker at once
+         s_text := ReplaceStr(s_text, '[image:' + s_name + ']',
+                              '![' + s_name + '](images/' + s_name + ')');
+
+         // Advance past the replaced text
+         i_pos := FirstPos('[image:', s_text, i_pos);
+      end;
+
+      o_file := TxlTextFile.create(s_file, fmWrite, enUTF8);
+      o_file.WriteText(s_text);
+      o_file.Free;
+   end else
+   begin
+      o_file := TxlTextFile.create(s_file, fmWrite, OptionMan.Options.ExportEncode);
+      if b_mep then
+         o_file.WriteLn(MepVersion);
+      o_file.WriteText(p.ExportText(b_mep));
+      o_file.Free;
+   end;
 
    if not p.PageProperty.ExternalSAve then
-   	p.PageProperty.ExportFile := s_file;
+      p.PageProperty.ExportFile := s_file;
    if (p.Childs <> nil) and (not p.IsChildItemContainer) then
-	   ProgTip.ShowTip (s_file, LangMan.GetItem (sr_GroupExportedToFile), tiInfo)
+      ProgTip.ShowTip(s_file, LangMan.GetItem(sr_GroupExportedToFile), tiInfo)
    else
-	   ProgTip.ShowTip (s_file, LangMan.GetItem (sr_PageExportedToFile), tiInfo);
+      ProgTip.ShowTip(s_file, LangMan.GetItem(sr_PageExportedToFile), tiInfo);
 end;
 
 procedure TIOHandler.ExportPageToClipboard (p: TPageSuper);

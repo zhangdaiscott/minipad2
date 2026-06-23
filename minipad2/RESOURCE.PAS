@@ -123,6 +123,7 @@ const
 			m_highlightmatch = 1480;
 
 	m_insertlink = 1490;
+	m_insertimage = 1491;
 
 	mc_navigation = 1550;
 		m_prior = 1560;

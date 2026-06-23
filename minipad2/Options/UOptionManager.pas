@@ -521,7 +521,7 @@ begin
    o_inifile.ReadItemList ('UserFunctions', FOptions.UserFuncs);
 	o_inifile.free;
 
-   if b_upgraded then     // Çå¿Õ´Ó¾É°æ±¾´øÀ´µÄÈßÓà¼üÖµ
+   if b_upgraded then     // ï¿½ï¿½Õ´Ó¾É°æ±¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
    begin
    	DeleteFile (ProgIni);
       DoSave;
@@ -728,7 +728,7 @@ var o_box: TOptionBox;
 	o_reg: TxlRegistry;
    s: widestring;
 begin
-   o_reg := Txlregistry.create (HKEY_LOCAL_MACHINE);
+   o_reg := Txlregistry.create (HKEY_CURRENT_USER);
    if o_reg.openkey ('Software\Microsoft\Windows\CurrentVersion\Run', false) then
    begin
       s := o_reg.readstring ('minipad2');
@@ -753,8 +753,8 @@ begin
    o_box := Sender as TOptionBox;
    if o_box.Options.autostart <> FOptions.AutoStart then
    begin
-      o_reg := Txlregistry.create (HKEY_LOCAL_MACHINE);
-      if o_reg.openkey ('Software\Microsoft\Windows\CurrentVersion\Run', false) then
+      o_reg := Txlregistry.create (HKEY_CURRENT_USER);
+      if o_reg.openkey ('Software\Microsoft\Windows\CurrentVersion\Run', true) then
       begin
          if o_box.Options.autostart then
             o_reg.WriteString ('minipad2', ProgExe + ' -m')

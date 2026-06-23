@@ -209,7 +209,7 @@ begin
             result := CommandMan.CheckCommand (m_removeitem)
          else
       	   result := CommandMan.CheckCommand (m_deleteitem);
-      m_wordwrap, m_find, m_subsequentfind, m_highlightmatch, m_texttools, m_insertlink, m_insertcliptext, m_inserttemplate:
+      m_wordwrap, m_find, m_subsequentfind, m_highlightmatch, m_texttools, m_insertlink, m_insertimage, m_insertcliptext, m_inserttemplate:
       	result := false;
       else
          result := true;
