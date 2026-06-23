@@ -4,59 +4,38 @@ on:
   push:
     tags:
       - 'v*'        # 推送 v3.2.1 这样的 tag 时触发
-  workflow_dispatch:  # 也支持手动触发
+  workflow_dispatch:  # 支持手动触发
 
 jobs:
-  build:
-    # 必须在安装了 Delphi 7 的自托管 Runner 上运行
-    runs-on: self-hosted
+  package:
+    # 使用 GitHub 托管的 Windows Runner（自带 Inno Setup 6）
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build XCL package
-        shell: cmd
-        run: |
-          "%DELPHI7_DIR%\bin\dcc32.exe" XCL\XCL.dpk -Q -B -LE".\output" -LN".\output"
-
-      - name: Build plugin packages
-        shell: cmd
-        run: |
-          "%DELPHI7_DIR%\bin\dcc32.exe" minipad2\dataupdater\dataupdater.dpk -Q -B -LE".\output" -LN".\output"
-          "%DELPHI7_DIR%\bin\dcc32.exe" minipad2\Options\options.dpk         -Q -B -LE".\output" -LN".\output"
-          "%DELPHI7_DIR%\bin\dcc32.exe" minipad2\pages\pages.dpk             -Q -B -LE".\output" -LN".\output"
-          "%DELPHI7_DIR%\bin\dcc32.exe" minipad2\workspace\workspace.dpk     -Q -B -LE".\output" -LN".\output"
-          "%DELPHI7_DIR%\bin\dcc32.exe" minipad2\plugins\plugins.dpk         -Q -B -LE".\output" -LN".\output"
-
-      - name: Build main executable
-        shell: cmd
-        run: |
-          "%DELPHI7_DIR%\bin\dcc32.exe" minipad2\minipad2.dpr -Q -B -E".\output"
-
-      - name: Copy runtime files
-        shell: cmd
-        run: |
-          mkdir output\lang
-          copy minipad2\LngUpdater\English.lng output\lang\
-          copy minipad2\Chinese.chm output\
-          copy minipad2\English.chm output\
-
       - name: Package with Inno Setup
-        shell: cmd
         run: |
-          "%PROGRAMFILES(X86)%\Inno Setup 6\ISCC.exe" installer\minipad2_setup.iss /DMyAppVersion=${{ github.ref_name }}
+          $version = "${{ github.ref_name }}"
+          if (-not $version) { $version = "v3.2.0" }
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            installer\minipad2_setup.iss `
+            /DMyAppVersion=$version
+        shell: pwsh
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: minipad2-installer
-          path: installer\Output\minipad2_setup_*.exe
+          path: installer\Output\*.exe
 
   release:
-    needs: build
+    needs: package
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
 
     steps:
       - name: Download artifact
@@ -67,5 +46,5 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: minipad2_setup_*.exe
+          files: "*.exe"
           generate_release_notes: true
