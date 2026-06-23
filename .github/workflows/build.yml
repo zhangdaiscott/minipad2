@@ -3,35 +3,81 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'        # 推送 v3.2.1 这样的 tag 时触发
-  workflow_dispatch:  # 支持手动触发
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
-  package:
-    # 使用 GitHub 托管的 Windows Runner（自带 Inno Setup 6）
-    runs-on: windows-latest
+  build-fpc:
+    runs-on: windows-2022
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Free Pascal
+        run: choco install freepascal --yes --no-progress
+        shell: pwsh
+
+      - name: Install windres (for RC files)
+        run: choco install mingw --yes --no-progress
+        shell: pwsh
+
+      - name: Compile RC resource files
+        shell: cmd
+        run: |
+          set WINDRES=C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin\windres.exe
+          "%WINDRES%" minipad2/MINIPAD2.RC   -O coff -o minipad2/MINIPAD2.res
+          "%WINDRES%" minipad2/DIALOGS.RC    -O coff -o minipad2/DIALOGS.res
+          "%WINDRES%" minipad2/OPTIONS.RC    -O coff -o minipad2/Options.res
+          "%WINDRES%" minipad2/PLUGINS.RC    -O coff -o minipad2/plugins.res
+
+      - name: Build with FPC (static, all packages merged into exe)
+        shell: cmd
+        run: |
+          set FPC=C:\FPC\3.2.2\bin\x86_64-win64\fpc.exe
+          "%FPC%" ^
+            -WG ^
+            -Twin32 ^
+            -O2 ^
+            -Fu./XCL ^
+            -Fu./minipad2 ^
+            -Fu./minipad2/Options ^
+            -Fu./minipad2/workspace ^
+            -Fu./minipad2/pages ^
+            -Fu./minipad2/plugins ^
+            -Fu./minipad2/dataupdater ^
+            -FE./output ^
+            minipad2/minipad2.dpr
+          if errorlevel 1 exit /b 1
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: |
+            **/*.log
+            output/
+
       - name: Package with Inno Setup
+        if: success()
+        shell: pwsh
         run: |
           $version = "${{ github.ref_name }}"
           if (-not $version) { $version = "v3.2.0" }
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
             installer\minipad2_setup.iss `
             /DMyAppVersion=$version
-        shell: pwsh
 
-      - name: Upload installer artifact
+      - name: Upload installer
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: minipad2-installer
           path: installer\Output\*.exe
 
   release:
-    needs: package
+    needs: build-fpc
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     permissions:

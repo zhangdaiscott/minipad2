@@ -3,7 +3,6 @@
 #define MyAppURL "https://github.com/zhangdaiscott/minipad2"
 #define MyAppExeName "minipad2.exe"
 
-; Version 由命令行传入：ISCC.exe ... /DMyAppVersion=v3.2.1
 #ifndef MyAppVersion
   #define MyAppVersion "v3.2.0"
 #endif
@@ -33,14 +32,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "startup";     Description: "Start with Windows";     GroupDescription: "Startup:"
 
 [Files]
-; 编译产物放在仓库 bin\ 目录下
-Source: "..\bin\{#MyAppExeName}";    DestDir: "{app}"; Flags: ignoreversion
-Source: "..\bin\XCL.bpl";           DestDir: "{app}"; Flags: ignoreversion
-Source: "..\bin\options.bpl";        DestDir: "{app}"; Flags: ignoreversion
-Source: "..\bin\pages.bpl";          DestDir: "{app}"; Flags: ignoreversion
-Source: "..\bin\workspace.bpl";      DestDir: "{app}"; Flags: ignoreversion
-Source: "..\bin\plugins.bpl";        DestDir: "{app}"; Flags: ignoreversion
-Source: "..\bin\dataupdater.bpl";    DestDir: "{app}"; Flags: ignoreversion
+; FPC 静态编译：只有单个 exe，不需要 bpl
+Source: "..\output\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 ; 帮助文件
 Source: "..\minipad2\Chinese.chm"; DestDir: "{app}"; Flags: ignoreversion
